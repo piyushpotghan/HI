@@ -17,7 +17,7 @@ const Sidebar = () => {
     });
     localStorage.removeItem("auth");
     toast.success("Logged Out Successfully");
-    navigate('/login')
+    navigate('/')
   };
 
   return (

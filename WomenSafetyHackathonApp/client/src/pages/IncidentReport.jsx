@@ -1,73 +1,36 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../Components/Dash/Sidebar";
 import toast from "react-hot-toast";
-import { useAuth } from "../context/auth";
+import { incidentData } from "../data/incidentData";
 
-const Dashboard = () => {
+const IncidentReport = () => {
   const [incidentReport, setIncidentReport] = useState([]);
   const [report, setReport] = useState("");
-  const [ack, setAck] = useState(false);
 
-  const [auth] = useAuth();
-
-  /* ================= GET ALL INCIDENTS ================= */
-  const getAllIncident = async () => {
-    try {
-      const res = await fetch(
-        "http://localhost:3000/api/v1/incidents",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth?.token}`,
-          },
-        }
-      );
-
-      if (res.status === 200) {
-        const data = await res.json();
-        setIncidentReport(data);
-      } else {
-        toast.error("Failed to fetch incidents");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Server error");
-    }
-  };
-
-  /* ================= ACKNOWLEDGE INCIDENT ================= */
-  const acknowledge = async (incId) => {
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/v1/incidents/${incId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth?.token}`,
-          },
-        }
-      );
-
-      if (res.status === 200) {
-        toast.success("Acknowledged successfully");
-        setAck(!ack);
-      }
-    } catch (err) {
-      toast.error("Update failed");
-    }
-  };
-
+  // Load incident data from localStorage or fallback to static
   useEffect(() => {
-    getAllIncident();
-    window.scrollTo(0, 0);
-  }, [ack]);
+    const saved = JSON.parse(localStorage.getItem("incidentReports"));
+    if (!saved) {
+      localStorage.setItem("incidentReports", JSON.stringify(incidentData));
+      setIncidentReport(incidentData);
+    } else {
+      setIncidentReport(saved);
+    }
+  }, []);
+
+  // Acknowledge button
+  const acknowledge = (id) => {
+    const updated = incidentReport.map((i) =>
+      i._id === id ? { ...i, isSeen: true } : i
+    );
+    setIncidentReport(updated);
+    localStorage.setItem("incidentReports", JSON.stringify(updated));
+    toast.success("Incident acknowledged");
+  };
 
   return (
     <div className="d-flex">
       <Sidebar />
-
       <div className="container table-responsive mx-3">
         <h2 className="text-center my-4">Women Incident Reports</h2>
 
@@ -80,47 +43,38 @@ const Dashboard = () => {
               <th>Pincode</th>
               <th>Date & Time</th>
               <th>Status</th>
+              <th>Map View</th>
             </tr>
           </thead>
 
           <tbody className="text-center">
-            {incidentReport.map((p) => (
-              <tr key={p._id}>
-                <td style={{ color: p.isSeen ? "green" : "red" }}>
-                  {p.uname}
-                </td>
-
+            {incidentReport.map((i) => (
+              <tr key={i._id}>
+                <td style={{ color: i.isSeen ? "green" : "red" }}>{i.uname}</td>
                 <td>
                   <button
                     className="btn btn-dark"
                     data-bs-toggle="modal"
-                    data-bs-target="#exampleModal"
-                    onClick={() => setReport(p.report)}
+                    data-bs-target="#incidentModal"
+                    onClick={() => setReport(i.report)}
                   >
                     View
                   </button>
                 </td>
-
-                <td>{p.address}</td>
-                <td>{p.pincode}</td>
+                <td>{i.address}</td>
+                <td>{i.pincode}</td>
+                <td>{i.createdAt.split("T")[0]} {i.createdAt.split("T")[1].split(".")[0]}</td>
                 <td>
-                  {p.createdAt?.split("T")[0]}{" "}
-                  {p.createdAt?.split("T")[1]?.split(".")[0]}
-                </td>
-
-                <td>
-                  {p.isSeen ? (
-                    <button className="btn btn-success" disabled>
-                      Acknowledged
-                    </button>
+                  {i.isSeen ? (
+                    <button className="btn btn-success" disabled>Acknowledged</button>
                   ) : (
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => acknowledge(p._id)}
-                    >
-                      Acknowledge
-                    </button>
+                    <button className="btn btn-danger" onClick={() => acknowledge(i._id)}>Acknowledge</button>
                   )}
+                </td>
+                <td>
+                  <a href={i.mapLink} target="_blank" rel="noopener noreferrer">
+                    <button className="btn btn-primary">View Map</button>
+                  </a>
                 </td>
               </tr>
             ))}
@@ -128,34 +82,17 @@ const Dashboard = () => {
         </table>
       </div>
 
-      {/* ================= MODAL ================= */}
-      <div
-        className="modal fade"
-        id="exampleModal"
-        tabIndex="-1"
-        aria-hidden="true"
-      >
+      {/* MODAL */}
+      <div className="modal fade" id="incidentModal" tabIndex="-1">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Incident Report</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
+              <button className="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div className="modal-body">{report}</div>
-
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
+              <button className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>
@@ -164,4 +101,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default IncidentReport;

@@ -29,11 +29,7 @@ const Footer = (props) => {
                     <p className="footer_text">
                       <a>dodiyameet041@gmail.com</a>
                       <br />
-                      <a className="footer-address">
-                        K.T Marg, Vidyavardhini's College of Engineering and
-                        Technology, <br />
-                        Vasai, Maharashtra, India
-                      </a>
+                      
                     </p>
                   </div>
                   <div className="col-lg-3 mb-4 mb-lg-0">
@@ -85,11 +81,7 @@ const Footer = (props) => {
                     <p className="footer_text">
                       <a>dodiyameet041@gmail.com</a>
                       <br />
-                      <a className="footer-address">
-                        K.T Marg, Vidyavardhini's College of Engineering and
-                        Technology, <br />
-                        Vasai, Maharashtra, India
-                      </a>
+                      
                     </p>
                   </div>
                   <div className="col-lg-3 mb-4 mb-lg-0">
